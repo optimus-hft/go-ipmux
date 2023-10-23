@@ -1,4 +1,7 @@
 # IPMux
+[![codecov](https://codecov.io/gh/optimus-hft/go-ipmux/branch/main/graph/badge.svg)](#)
+[![Go Report Card](https://goreportcard.com/badge/github.com/optimus-hft/go-ipmux)](https://goreportcard.com/report/github.com/optimus-hft/go-ipmux)
+[![Go Reference](https://pkg.go.dev/badge/github.com/optimus-hft/go-ipmux.svg)](https://pkg.go.dev/github.com/optimus-hft/go-ipmux)
 ## GoLang Library for Multiplexing HTTP Clients based on Source IP
 IPMux is an open-source GoLang library that provides a simple and efficient way to multiplex HTTP clients based on source IP addresses. This library is designed to handle scenarios where you need to make HTTP requests from specific network interfaces based on the source IP.
 This library could be useful to bypass rate limit errors which operate on source IPs.
@@ -81,9 +84,3 @@ Pull requests and bug reports are welcome. For major changes, please open an iss
 
 ## License
 This project is licensed under the MIT License.
-
-Feel free to customize this README with additional information specific to your library, such as examples, advanced usage, or specific use cases. Make sure to replace placeholders like `github.com/optimus-hft/go-ipmux` with the actual repository URL.
-
-Remember to also include a LICENSE file in your repository and ensure that it complies with the chosen license.
-
-If you have any further questions or need additional assistance, feel free to ask!
