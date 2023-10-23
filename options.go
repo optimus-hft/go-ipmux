@@ -6,15 +6,20 @@ import (
 	"time"
 )
 
-var defaultBaseClient = http.DefaultClient
-var defaultBaseTransport = http.DefaultTransport.(*http.Transport)
+const (
+	defaultTimeout   = 30 * time.Second
+	defaultKeepAlive = 30 * time.Second
+)
 
-var defaultClientBaseOpts = &clientBaseOpts{
+var defaultBaseClient = http.DefaultClient                         // nolint: gochecknoglobals
+var defaultBaseTransport = http.DefaultTransport.(*http.Transport) // nolint: gochecknoglobals, forcetypeassert
+
+var defaultClientBaseOpts = &clientBaseOpts{ // nolint: gochecknoglobals
 	client:    defaultBaseClient,
 	transport: defaultBaseTransport,
 	dialer: &net.Dialer{
-		Timeout:   30 * time.Second,
-		KeepAlive: 30 * time.Second,
+		Timeout:   defaultTimeout,
+		KeepAlive: defaultKeepAlive,
 	},
 }
 

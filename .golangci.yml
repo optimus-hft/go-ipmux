@@ -1,0 +1,83 @@
+run:
+  timeout: 5m
+  issues-exit-code: 2
+  skip-files:
+    - ".*_test.go$"
+    - lib/bad.go
+  go: "1.21"
+output:
+  format: code-climate
+linters-settings:
+  gocritic:
+    disabled-checks:
+      - ifElseChain
+  wrapcheck:
+    ignorePackageGlobs:
+      - github.com/hashicorp/go-multierror
+      - database/sql
+      - encoding/json
+
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - containedctx
+    - decorder
+    - dogsled
+    - dupl
+    - dupword
+    - durationcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - execinquery
+    - exhaustive
+    - exportloopref
+    - forbidigo
+    - forcetypeassert
+    - gocheckcompilerdirectives
+    - gochecknoglobals
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - gofmt
+    - goimports
+    - gomnd
+    - gomoddirectives
+    - gomodguard
+    - goprintffuncname
+    - gosec
+    - gosmopolitan
+    - importas
+    - interfacebloat
+    - loggercheck
+    - maintidx
+    - misspell
+    - nakedret
+    - nilerr
+    - nilnil
+    - nlreturn
+    - noctx
+    - nonamedreturns
+    - nosprintfhostport
+    - prealloc
+    - predeclared
+    - promlinter
+    - reassign
+    - rowserrcheck
+    - tenv
+    - unconvert
+    - unparam
+    - wastedassign
+    - wrapcheck

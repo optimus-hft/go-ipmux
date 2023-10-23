@@ -1,6 +1,6 @@
 module github.com/optimus-hft/go-ipmux
 
-go 1.21.0
+go 1.21
 
 require (
 	github.com/cockroachdb/errors v1.11.1
