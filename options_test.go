@@ -9,7 +9,7 @@ import (
 )
 
 func TestWithBaseClient(t *testing.T) {
-	defaultBase := defaultClientBaseOpts
+	defaultBase := getDefaultClientBaseOpts()
 	client := http.DefaultClient
 	client.Timeout = time.Second
 	WithBaseClient(client)(defaultBase)
@@ -17,20 +17,20 @@ func TestWithBaseClient(t *testing.T) {
 }
 
 func TestWithTimeout(t *testing.T) {
-	defaultBase := defaultClientBaseOpts
+	defaultBase := getDefaultClientBaseOpts()
 	WithTimeout(time.Second)(defaultBase)
 	assert.Equal(t, defaultBase.client.Timeout, time.Second)
 	assert.Equal(t, defaultBase.dialer.Timeout, time.Second)
 }
 
 func TestWithKeepAlive(t *testing.T) {
-	defaultBase := defaultClientBaseOpts
+	defaultBase := getDefaultClientBaseOpts()
 	WithKeepAlive(time.Second)(defaultBase)
 	assert.Equal(t, defaultBase.dialer.KeepAlive, time.Second)
 }
 
 func TestWithBaseTransport(t *testing.T) {
-	defaultBase := defaultClientBaseOpts
+	defaultBase := getDefaultClientBaseOpts()
 	transport := &http.Transport{
 		DialContext:           defaultBase.dialer.DialContext,
 		ForceAttemptHTTP2:     true,
@@ -44,7 +44,7 @@ func TestWithBaseTransport(t *testing.T) {
 }
 
 func TestWithDialer(t *testing.T) {
-	defaultBase := defaultClientBaseOpts
+	defaultBase := getDefaultClientBaseOpts()
 	dialer := &net.Dialer{
 		Timeout: time.Second,
 	}

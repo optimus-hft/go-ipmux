@@ -62,7 +62,7 @@ func New(ips []string, options ...Option) (*IPMux, error) {
 		}
 	}
 
-	clientOpts := defaultClientBaseOpts
+	clientOpts := getDefaultClientBaseOpts()
 	for _, option := range options {
 		option(clientOpts)
 	}
@@ -92,13 +92,13 @@ func ipExistingInAddrs(addrs []net.Addr, ip string) (net.Addr, bool) {
 }
 
 func createClient(addr net.Addr, opts *clientBaseOpts) *http.Client {
-	client := *opts.client
-	dialer := *opts.dialer
-	transport := *opts.transport
+	client := opts.client
+	dialer := opts.dialer
+	transport := opts.transport
 
 	dialer.LocalAddr = addr
 	transport.DialContext = dialer.DialContext
-	client.Transport = &transport
+	client.Transport = transport
 
-	return &client
+	return client
 }

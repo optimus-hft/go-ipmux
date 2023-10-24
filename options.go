@@ -7,20 +7,36 @@ import (
 )
 
 const (
-	defaultTimeout   = 30 * time.Second
-	defaultKeepAlive = 30 * time.Second
+	defaultTimeout               = 30 * time.Second
+	defaultKeepAlive             = 30 * time.Second
+	defaultMaxIdleConns          = 100
+	defaultIdleConnTimeout       = 90 * time.Second
+	defaultTLSHandshakeTimeout   = 10 * time.Second
+	defaultExpectContinueTimeout = 1 * time.Second
 )
 
-var defaultBaseClient = http.DefaultClient                         // nolint: gochecknoglobals
-var defaultBaseTransport = http.DefaultTransport.(*http.Transport) // nolint: gochecknoglobals, forcetypeassert
-
-var defaultClientBaseOpts = &clientBaseOpts{ // nolint: gochecknoglobals
-	client:    defaultBaseClient,
-	transport: defaultBaseTransport,
-	dialer: &net.Dialer{
+func getDefaultClientBaseOpts() *clientBaseOpts {
+	dialer := &net.Dialer{
 		Timeout:   defaultTimeout,
 		KeepAlive: defaultKeepAlive,
-	},
+	}
+	transport := &http.Transport{
+		Proxy:                 http.ProxyFromEnvironment,
+		DialContext:           dialer.DialContext,
+		ForceAttemptHTTP2:     true,
+		MaxIdleConns:          defaultMaxIdleConns,
+		IdleConnTimeout:       defaultIdleConnTimeout,
+		TLSHandshakeTimeout:   defaultTLSHandshakeTimeout,
+		ExpectContinueTimeout: defaultExpectContinueTimeout,
+	}
+
+	return &clientBaseOpts{
+		client: &http.Client{
+			Transport: transport,
+		},
+		dialer:    dialer,
+		transport: transport,
+	}
 }
 
 type clientBaseOpts struct {
