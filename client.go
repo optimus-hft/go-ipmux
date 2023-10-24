@@ -1,12 +1,13 @@
 package ipmux
 
 import (
-	"github.com/cockroachdb/errors"
-	"github.com/hashicorp/go-multierror"
 	"net"
 	"net/http"
 	"strings"
 	"sync/atomic"
+
+	"github.com/cockroachdb/errors"
+	"github.com/hashicorp/go-multierror"
 )
 
 var ErrInvalidIP = errors.New("invalid source ip, not found in device network interfaces")
@@ -24,6 +25,7 @@ func (i *IPMux) Client() *http.Client {
 		return http.DefaultClient
 	}
 	defer i.counter.Add(1)
+
 	return i.clients[i.counter.Load()%length]
 }
 
@@ -33,6 +35,7 @@ func (i *IPMux) Clients() []*http.Client {
 	if len(i.clients) == 0 {
 		return []*http.Client{http.DefaultClient}
 	}
+
 	return i.clients
 }
 
@@ -59,7 +62,7 @@ func New(ips []string, options ...Option) (*IPMux, error) {
 		}
 	}
 
-	clientOpts := defaultClientBaseOpts
+	clientOpts := getDefaultClientBaseOpts()
 	for _, option := range options {
 		option(clientOpts)
 	}
@@ -78,22 +81,24 @@ func ipExistingInAddrs(addrs []net.Addr, ip string) (net.Addr, bool) {
 			if err != nil {
 				continue
 			}
+
 			return &net.TCPAddr{
 				IP: localAddr.IP,
 			}, true
 		}
 	}
+
 	return nil, false
 }
 
 func createClient(addr net.Addr, opts *clientBaseOpts) *http.Client {
-	client := *opts.client
-	dialer := *opts.dialer
-	transport := *opts.transport
+	client := opts.client
+	dialer := opts.dialer
+	transport := opts.transport
 
 	dialer.LocalAddr = addr
 	transport.DialContext = dialer.DialContext
-	client.Transport = &transport
+	client.Transport = transport
 
-	return &client
+	return client
 }

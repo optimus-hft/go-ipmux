@@ -6,16 +6,37 @@ import (
 	"time"
 )
 
-var defaultBaseClient = http.DefaultClient
-var defaultBaseTransport = http.DefaultTransport.(*http.Transport)
+const (
+	defaultTimeout               = 30 * time.Second
+	defaultKeepAlive             = 30 * time.Second
+	defaultMaxIdleConns          = 100
+	defaultIdleConnTimeout       = 90 * time.Second
+	defaultTLSHandshakeTimeout   = 10 * time.Second
+	defaultExpectContinueTimeout = 1 * time.Second
+)
 
-var defaultClientBaseOpts = &clientBaseOpts{
-	client:    defaultBaseClient,
-	transport: defaultBaseTransport,
-	dialer: &net.Dialer{
-		Timeout:   30 * time.Second,
-		KeepAlive: 30 * time.Second,
-	},
+func getDefaultClientBaseOpts() *clientBaseOpts {
+	dialer := &net.Dialer{
+		Timeout:   defaultTimeout,
+		KeepAlive: defaultKeepAlive,
+	}
+	transport := &http.Transport{
+		Proxy:                 http.ProxyFromEnvironment,
+		DialContext:           dialer.DialContext,
+		ForceAttemptHTTP2:     true,
+		MaxIdleConns:          defaultMaxIdleConns,
+		IdleConnTimeout:       defaultIdleConnTimeout,
+		TLSHandshakeTimeout:   defaultTLSHandshakeTimeout,
+		ExpectContinueTimeout: defaultExpectContinueTimeout,
+	}
+
+	return &clientBaseOpts{
+		client: &http.Client{
+			Transport: transport,
+		},
+		dialer:    dialer,
+		transport: transport,
+	}
 }
 
 type clientBaseOpts struct {
