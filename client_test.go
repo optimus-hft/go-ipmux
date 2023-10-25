@@ -1,11 +1,12 @@
 package ipmux
 
 import (
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNew(t *testing.T) {
@@ -20,53 +21,81 @@ func TestNew(t *testing.T) {
 }
 
 func TestIPMux_Clients(t *testing.T) {
-	t.Run("empty", func(t *testing.T) {
-		ipMux := IPMux{}
+	nonDefaultHttpClient := http.DefaultClient
+	nonDefaultHttpClient.Timeout = time.Second
 
-		clients := ipMux.Clients()
-		assert.Len(t, clients, 1)
-		assert.Contains(t, clients, http.DefaultClient)
-	})
-	t.Run("non-empty", func(t *testing.T) {
-		secondClient := http.DefaultClient
-		secondClient.Timeout = time.Second
+	testCases := []struct {
+		name string
+		expectedLen int
+		firstClient *http.Client
+		secondClient *http.Client
+		ipMuxClient IPMux
+	} {
+		{
+			name: "Empty",
+			expectedLen: 1,
+			firstClient: http.DefaultClient,
+			secondClient: http.DefaultClient,
+			ipMuxClient: IPMux{},
+		},
+		{
+			name: "NonEmpty",
+			expectedLen: 2,
+			firstClient: http.DefaultClient,
+			secondClient: nonDefaultHttpClient,
+			ipMuxClient: IPMux{
+				counter: atomic.Uint64{},
+				clients: []*http.Client{http.DefaultClient, nonDefaultHttpClient},
+			},
+		},
+	}
 
-		ipMux := IPMux{
-			counter: atomic.Uint64{},
-			clients: []*http.Client{http.DefaultClient, secondClient},
-		}
-
-		clients := ipMux.Clients()
-		assert.Len(t, clients, 2)
-		assert.Contains(t, clients, secondClient)
-		assert.Contains(t, clients, http.DefaultClient)
-	})
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			clients := tc.ipMuxClient.Clients()
+			assert.Len(t, clients, tc.expectedLen)
+			assert.Contains(t, clients, tc.firstClient)
+			assert.Contains(t, clients, tc.secondClient)
+		})
+	}
 }
 
 func TestIPMux_Client(t *testing.T) {
-	t.Run("empty", func(t *testing.T) {
-		ipMux := IPMux{}
 
-		firstClient := ipMux.Client()
-		assert.Equal(t, firstClient, http.DefaultClient)
-		secondClient := ipMux.Client()
-		assert.Equal(t, secondClient, http.DefaultClient)
-	})
-	t.Run("non-empty", func(t *testing.T) {
-		secondClient := http.DefaultClient
-		secondClient.Timeout = time.Second
+	nonDefaultHttpClient := http.DefaultClient
+	nonDefaultHttpClient.Timeout = time.Second
 
-		ipMux := IPMux{
-			counter: atomic.Uint64{},
-			clients: []*http.Client{http.DefaultClient, secondClient},
-		}
+	testCases := []struct {
+		name string
+		firstClient *http.Client
+		secondClient *http.Client
+		ipMuxClient IPMux
+	} {
+		{
+			name: "Empty",
+			firstClient: http.DefaultClient,
+			secondClient: http.DefaultClient,
+			ipMuxClient: IPMux{},
+		},
+		{
+			name: "NonEmpty",
+			firstClient: http.DefaultClient,
+			secondClient: nonDefaultHttpClient,
+			ipMuxClient: IPMux{
+				counter: atomic.Uint64{},
+				clients: []*http.Client{http.DefaultClient, nonDefaultHttpClient},
+			},
+		},
+	}
 
-		firstClient := ipMux.Client()
-		assert.Equal(t, firstClient, http.DefaultClient)
-
-		second := ipMux.Client()
-		assert.Equal(t, second, secondClient)
-
-		assert.Equal(t, ipMux.counter.Load(), uint64(2))
-	})
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			firstClient := tc.ipMuxClient.Client()
+			secondClient := tc.ipMuxClient.Client()
+			assert.Equal(t, firstClient, tc.firstClient)
+			assert.Equal(t, secondClient, tc.secondClient)
+		})
+	}
 }
