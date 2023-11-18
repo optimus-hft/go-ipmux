@@ -13,6 +13,7 @@ This library could be useful to bypass rate limit errors which operate on source
 + Multiplex HTTP clients based on source IP addresses.
 + Customizable options for creating HTTP clients.
 + Easy-to-use interface for seamless integration.
++ Enabling DNS cache with a refresh interval.
 
 
 ## Getting Started
@@ -81,6 +82,13 @@ Change the base transport (http.RoundTripper) used to create clients for IPMux.
 
 ### `WithDialer(dialer *net.Dialer) Option`
 Change the base dialer used to create clients for IPMux.
+
+### `WithDNSCache(refreshInterval time.Duration) Option`
+Enable the DNS cache feature with a refresh interval.
+
+### `WithContext(ctx context.Context) Option`
+Change the default context to control background goroutine like DNS cache refresh. The default context is `context.Background()`.
+
 
 ## Contributing
 Pull requests and bug reports are welcome. For major changes, please open an issue first to discuss what you would like to change.

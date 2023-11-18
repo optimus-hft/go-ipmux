@@ -1,6 +1,7 @@
 package ipmux
 
 import (
+	"context"
 	"github.com/stretchr/testify/assert"
 	"net"
 	"net/http"
@@ -50,4 +51,20 @@ func TestWithDialer(t *testing.T) {
 	}
 	WithDialer(dialer)(defaultBase)
 	assert.Equal(t, defaultBase.dialer, dialer)
+}
+
+func TestWithContext(t *testing.T) {
+	defaultBase := getDefaultClientBaseOpts()
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+	WithContext(ctx)(defaultBase)
+	assert.Equal(t, defaultBase.ctx, ctx)
+}
+
+func TestWithDNSCache(t *testing.T) {
+	defaultBase := getDefaultClientBaseOpts()
+
+	WithDNSCache(10 * time.Second)(defaultBase)
+	assert.NotNil(t, defaultBase.resolver)
+	assert.Equal(t, defaultBase.refreshInterval, 10*time.Second)
 }

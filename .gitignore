@@ -23,3 +23,4 @@ go.work
 .idea
 
 gl-code-quality-report.json
+coverage.txt

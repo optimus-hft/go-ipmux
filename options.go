@@ -1,9 +1,12 @@
 package ipmux
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"time"
+
+	"github.com/rs/dnscache"
 )
 
 const (
@@ -34,15 +37,21 @@ func getDefaultClientBaseOpts() *clientBaseOpts {
 		client: &http.Client{
 			Transport: transport,
 		},
-		dialer:    dialer,
-		transport: transport,
+		dialer:          dialer,
+		transport:       transport,
+		refreshInterval: time.Second,
+		ctx:             context.Background(),
 	}
 }
 
+// nolint:containedctx
 type clientBaseOpts struct {
-	client    *http.Client
-	transport *http.Transport
-	dialer    *net.Dialer
+	client          *http.Client
+	transport       *http.Transport
+	dialer          *net.Dialer
+	resolver        *dnscache.Resolver
+	refreshInterval time.Duration
+	ctx             context.Context
 }
 
 type Option func(base *clientBaseOpts)
@@ -80,5 +89,20 @@ func WithBaseTransport(transport *http.Transport) Option {
 func WithDialer(dialer *net.Dialer) Option {
 	return func(base *clientBaseOpts) {
 		base.dialer = dialer
+	}
+}
+
+// WithDNSCache is used to enable dns cache for the clients.
+func WithDNSCache(refreshInterval time.Duration) Option {
+	return func(base *clientBaseOpts) {
+		base.resolver = &dnscache.Resolver{}
+		base.refreshInterval = refreshInterval
+	}
+}
+
+// WithContext is used to change the context that is used to detect when to stop background goroutines like refreshing dns cache.
+func WithContext(ctx context.Context) Option {
+	return func(base *clientBaseOpts) {
+		base.ctx = ctx
 	}
 }
