@@ -1,6 +1,7 @@
 package ipmux
 
 import (
+	"context"
 	"net/http"
 	"sync/atomic"
 	"testing"
@@ -10,14 +11,38 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	ipMux, err := New([]string{
-		"127.0.0.1",
-		"1.1.1.1",
-	}, WithBaseClient(http.DefaultClient))
-	assert.NotNil(t, err)
-	assert.ErrorIs(t, err, ErrInvalidIP)
-	assert.NotNil(t, ipMux)
-	assert.Len(t, ipMux.clients, 1)
+	t.Run("without-dns-cache", func(t *testing.T) {
+		ipMux, err := New([]string{
+			"127.0.0.1",
+			"1.1.1.1",
+		}, WithBaseClient(http.DefaultClient))
+		assert.NotNil(t, err)
+		assert.ErrorIs(t, err, ErrInvalidIP)
+		assert.NotNil(t, ipMux)
+		assert.Len(t, ipMux.clients, 1)
+	})
+
+	t.Run("with-dns-cache", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.TODO())
+		ipMux, err := New([]string{}, WithBaseClient(http.DefaultClient), WithDNSCache(100*time.Millisecond), WithContext(ctx))
+		assert.Nil(t, err)
+		assert.NotNil(t, ipMux)
+		assert.Len(t, ipMux.clients, 1)
+
+		// First request. not cached
+		_, err = ipMux.Client().Get("https://ifconfig.io/")
+		assert.Nil(t, err)
+
+		// Second request. should be cached
+		_, err = ipMux.Client().Get("https://ifconfig.io/")
+		assert.Nil(t, err)
+
+		time.Sleep(time.Millisecond * 200)
+		cancel()
+		ipMux.Stop()
+		<-ctx.Done()
+	})
+
 }
 
 func TestIPMux_Clients(t *testing.T) {
@@ -25,23 +50,23 @@ func TestIPMux_Clients(t *testing.T) {
 	nonDefaultHttpClient.Timeout = time.Second
 
 	testCases := []struct {
-		name string
-		expectedLen int
-		firstClient *http.Client
+		name         string
+		expectedLen  int
+		firstClient  *http.Client
 		secondClient *http.Client
-		ipMuxClient IPMux
-	} {
+		ipMuxClient  IPMux
+	}{
 		{
-			name: "Empty",
-			expectedLen: 1,
-			firstClient: http.DefaultClient,
+			name:         "Empty",
+			expectedLen:  1,
+			firstClient:  http.DefaultClient,
 			secondClient: http.DefaultClient,
-			ipMuxClient: IPMux{},
+			ipMuxClient:  IPMux{},
 		},
 		{
-			name: "NonEmpty",
-			expectedLen: 2,
-			firstClient: http.DefaultClient,
+			name:         "NonEmpty",
+			expectedLen:  2,
+			firstClient:  http.DefaultClient,
 			secondClient: nonDefaultHttpClient,
 			ipMuxClient: IPMux{
 				counter: atomic.Uint64{},
@@ -67,20 +92,20 @@ func TestIPMux_Client(t *testing.T) {
 	nonDefaultHttpClient.Timeout = time.Second
 
 	testCases := []struct {
-		name string
-		firstClient *http.Client
+		name         string
+		firstClient  *http.Client
 		secondClient *http.Client
-		ipMuxClient IPMux
-	} {
+		ipMuxClient  IPMux
+	}{
 		{
-			name: "Empty",
-			firstClient: http.DefaultClient,
+			name:         "Empty",
+			firstClient:  http.DefaultClient,
 			secondClient: http.DefaultClient,
-			ipMuxClient: IPMux{},
+			ipMuxClient:  IPMux{},
 		},
 		{
-			name: "NonEmpty",
-			firstClient: http.DefaultClient,
+			name:         "NonEmpty",
+			firstClient:  http.DefaultClient,
 			secondClient: nonDefaultHttpClient,
 			ipMuxClient: IPMux{
 				counter: atomic.Uint64{},
